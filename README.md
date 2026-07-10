@@ -13,10 +13,12 @@ A mobile-first one-bit puzzle platformer built with Flutter, Flame, Tiled, and K
 
 ## Requirements
 
-- Flutter 3.41.0 or newer
-- Dart 3.11.0 or newer
+- Flutter 3.38.0 or newer
+- Dart 3.10.0 or newer
 - Android Studio with the Android SDK
 - Android device or emulator
+
+The project currently pins Flame 1.35.1 and `flame_tiled` 3.0.11 so it works with Flutter 3.38.5 / Dart 3.10.4.
 
 ## Windows setup
 
@@ -28,6 +30,17 @@ flutter run
 ```
 
 The setup script generates the native Android scaffold when it is missing, downloads packages, and runs `flutter doctor`.
+
+### Updating an existing clone
+
+```powershell
+git pull origin main
+flutter clean
+flutter pub get
+flutter run
+```
+
+The Visual Studio C++ warning from `flutter doctor` only affects Flutter Windows desktop builds. It does not block Android development.
 
 ## Level editing
 
