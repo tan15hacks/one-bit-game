@@ -17,5 +17,26 @@ jobs:
       - name: Generate Android scaffold
         run: flutter create --platforms=android --org com.tan15hacks --project-name one_bit_game --no-pub .
       - run: flutter pub get
-      - run: flutter analyze
-      - run: flutter build apk --debug
+      - name: Analyze
+        id: analyze
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          flutter analyze 2>&1 | tee analyze.txt
+      - name: Build Android debug APK
+        id: build
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          flutter build apk --debug 2>&1 | tee build.txt
+      - name: Upload validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-validation-reports
+          path: |
+            analyze.txt
+            build.txt
+      - name: Fail when validation failed
+        if: steps.analyze.outcome == 'failure' || steps.build.outcome == 'failure'
+        run: exit 1
