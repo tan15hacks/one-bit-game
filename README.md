@@ -2,29 +2,14 @@
 
 A mobile-first one-bit puzzle platformer built with Flutter, Flame, Tiled, and Kenney's CC0 1-Bit Platformer Pack.
 
-## Current playable tutorial
+## Current playable vertical slice
 
 - Landscape Android-first Flutter app
 - Fixed 320 × 192 Flame camera
-- Tiled TMX tutorial level
-- Responsive multitouch movement and jump controls
+- Tiled TMX starter level
+- Multitouch left, right, and jump controls
 - Gravity, collision, coyote time, and jump buffering
-- Four ordered tutorial objectives with live progress
-- Movement and jump training
-- Collectible-bit objective and locked exit
-- Spikes, respawning, and death tracking
-- Tutorial introduction and completion summary
-- Pause, replay, and menu UI
-- Modular game, tutorial, and control code for future levels
-
-## Tutorial objectives
-
-1. Move left or right far enough to learn the directional pad.
-2. Perform a successful jump.
-3. Collect every bit while avoiding spikes.
-4. Reach the unlocked exit.
-
-The planned worlds, enemies, hazards, and mechanics are documented in `docs/LEVEL_ROADMAP.md`.
+- Spikes, visible glowing bit collectibles, locked exit, respawning, death counter, pause, replay, and menu UI
 
 ## Requirements
 
