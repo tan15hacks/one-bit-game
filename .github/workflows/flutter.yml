@@ -17,7 +17,21 @@ jobs:
       - name: Generate Android scaffold
         run: flutter create --platforms=android --org com.tan15hacks --project-name one_bit_game --no-pub .
       - run: flutter pub get
-      - run: flutter analyze
+      - name: Analyze
+        id: analyze
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          flutter analyze 2>&1 | tee analyze.txt
+      - name: Upload analyzer report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-analyzer-report
+          path: analyze.txt
+      - name: Stop on analyzer failure
+        if: steps.analyze.outcome == 'failure'
+        run: exit 1
       - run: flutter test
       - run: flutter build apk --debug
       - name: Upload debug APK
