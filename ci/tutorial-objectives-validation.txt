@@ -1,1 +1,2 @@
 This branch exists only to trigger pull-request validation for the tutorial objective system.
+Final validation includes analyzer, widget tests, and Android debug build.
