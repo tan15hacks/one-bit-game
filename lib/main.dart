@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'src/app.dart';
+export 'src/app.dart' show OneBitApp;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
