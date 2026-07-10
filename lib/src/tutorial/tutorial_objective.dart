@@ -25,12 +25,12 @@ const List<TutorialObjectiveData> tutorialObjectives = <TutorialObjectiveData>[
   ),
   TutorialObjectiveData(
     title: 'COLLECT EVERY BIT',
-    instruction: 'Gather all white bits. Spikes will send you back.',
+    instruction: 'Keep moving right and collect all glowing diamonds.',
     icon: Icons.diamond_outlined,
   ),
   TutorialObjectiveData(
     title: 'REACH THE EXIT',
-    instruction: 'The door is open. Reach it to finish the tutorial.',
+    instruction: 'Continue right and enter the large glowing doorway.',
     icon: Icons.door_front_door_outlined,
   ),
 ];
