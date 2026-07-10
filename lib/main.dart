@@ -3,8 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
-import 'package:flame/sprite.dart';
-import 'package:flame_tiled/flame_tiled.dart';
+import 'package:flame_tiled/flame_tiled.dart' hide Text;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -592,9 +591,9 @@ class _Hud extends StatelessWidget {
           children: <Widget>[
             ValueListenableBuilder<int>(
               valueListenable: game.collectedCoins,
-              builder: (_, collected, __) => ValueListenableBuilder<int>(
+              builder: (_, collected, _) => ValueListenableBuilder<int>(
                 valueListenable: game.totalCoins,
-                builder: (_, total, __) => _Chip(
+                builder: (_, total, _) => _Chip(
                   text: 'BITS $collected/$total',
                 ),
               ),
@@ -602,7 +601,7 @@ class _Hud extends StatelessWidget {
             const SizedBox(width: 8),
             ValueListenableBuilder<int>(
               valueListenable: game.deaths,
-              builder: (_, deaths, __) => _Chip(text: 'DEATHS $deaths'),
+              builder: (_, deaths, _) => _Chip(text: 'DEATHS $deaths'),
             ),
             const Spacer(),
             IconButton.filledTonal(
@@ -741,7 +740,7 @@ class _CompletionOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
       valueListenable: game.levelComplete,
-      builder: (_, complete, __) {
+      builder: (_, complete, _) {
         if (!complete) return const SizedBox.shrink();
         return ColoredBox(
           color: Colors.black.withValues(alpha: 0.86),
