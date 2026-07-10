@@ -2,28 +2,14 @@ name: Flutter CI
 
 on:
   push:
-    branches: [main, ci-validation]
+    branches: [main]
   pull_request:
-
-permissions:
-  contents: write
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Commit final analyzer cleanup
-        if: github.event_name == 'push' && github.ref == 'refs/heads/ci-validation'
-        run: |
-          sed -i "/package:flame\/sprite.dart/d" lib/main.dart
-          if ! git diff --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add lib/main.dart
-            git commit -m "style: remove redundant Flame import"
-            git push origin HEAD:ci-validation
-          fi
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
