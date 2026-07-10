@@ -18,7 +18,14 @@ jobs:
       - name: Generate Android scaffold
         run: flutter create --platforms=android --org com.tan15hacks --project-name one_bit_game --no-pub .
       - run: flutter pub get
-      - run: flutter analyze
+      - name: Capture Flutter analyzer report
+        run: flutter analyze > analyze.log 2>&1 || true
+      - name: Upload analyzer report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tutorial-analyzer-report
+          path: analyze.log
       - run: flutter test
       - run: flutter build apk --debug
       - name: Upload debug APK
