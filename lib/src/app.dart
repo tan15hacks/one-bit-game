@@ -484,7 +484,7 @@ class _TutorialIntroOverlay extends StatelessWidget {
                   width: 250,
                   height: 52,
                   child: ValueListenableBuilder<bool>(
-                    valueListenable: game.ready,
+                    valueListenable: game.gameReady,
                     builder: (_, ready, _) => FilledButton(
                       onPressed: ready ? onStart : null,
                       child: Text(
