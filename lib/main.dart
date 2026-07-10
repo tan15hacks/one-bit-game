@@ -111,6 +111,11 @@ class GameInput {
     return leftHeld ? -1 : 1;
   }
 
+  void setHorizontalDirection(int direction) {
+    leftHeld = direction < 0;
+    rightHeld = direction > 0;
+  }
+
   void queueJump() => _jumpQueued = true;
 
   bool consumeJump() {
@@ -593,9 +598,7 @@ class _Hud extends StatelessWidget {
               valueListenable: game.collectedCoins,
               builder: (_, collected, _) => ValueListenableBuilder<int>(
                 valueListenable: game.totalCoins,
-                builder: (_, total, _) => _Chip(
-                  text: 'BITS $collected/$total',
-                ),
+                builder: (_, total, _) => _Chip(text: 'BITS $collected/$total'),
               ),
             ),
             const SizedBox(width: 8),
@@ -644,29 +647,29 @@ class MobileControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.sizeOf(context);
+    final controlSize = (screenSize.shortestSide * 0.20)
+        .clamp(86.0, 112.0)
+        .toDouble();
+    final horizontalPadding = (screenSize.width * 0.035)
+        .clamp(16.0, 36.0)
+        .toDouble();
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
+      padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 16),
       child: Align(
         alignment: Alignment.bottomCenter,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
-            _HoldButton(
-              icon: Icons.arrow_left_rounded,
-              onChanged: (held) => input.leftHeld = held,
-            ),
-            const SizedBox(width: 10),
-            _HoldButton(
-              icon: Icons.arrow_right_rounded,
-              onChanged: (held) => input.rightHeld = held,
+            _DirectionalPad(
+              input: input,
+              buttonSize: controlSize,
             ),
             const Spacer(),
-            _HoldButton(
-              icon: Icons.keyboard_arrow_up_rounded,
-              diameter: 76,
-              onChanged: (held) {
-                if (held) input.queueJump();
-              },
+            _JumpButton(
+              diameter: controlSize * 1.06,
+              onPressed: input.queueJump,
             ),
           ],
         ),
@@ -675,50 +678,206 @@ class MobileControls extends StatelessWidget {
   }
 }
 
-class _HoldButton extends StatefulWidget {
-  const _HoldButton({
-    required this.icon,
-    required this.onChanged,
-    this.diameter = 68,
+class _DirectionalPad extends StatefulWidget {
+  const _DirectionalPad({
+    required this.input,
+    required this.buttonSize,
   });
 
-  final IconData icon;
-  final ValueChanged<bool> onChanged;
-  final double diameter;
+  final GameInput input;
+  final double buttonSize;
 
   @override
-  State<_HoldButton> createState() => _HoldButtonState();
+  State<_DirectionalPad> createState() => _DirectionalPadState();
 }
 
-class _HoldButtonState extends State<_HoldButton> {
-  bool _held = false;
+class _DirectionalPadState extends State<_DirectionalPad> {
+  int? _activePointer;
+  int _direction = 0;
 
-  void _setHeld(bool value) {
-    if (_held == value) return;
-    _held = value;
-    widget.onChanged(value);
+  double get _width => widget.buttonSize * 2.12;
+
+  void _updateDirection(PointerEvent event) {
+    if (_activePointer != event.pointer) return;
+    final nextDirection = event.localPosition.dx < _width / 2 ? -1 : 1;
+    if (nextDirection == _direction) return;
+    _direction = nextDirection;
+    widget.input.setHorizontalDirection(nextDirection);
+    HapticFeedback.selectionClick();
+    if (mounted) setState(() {});
+  }
+
+  void _handleDown(PointerDownEvent event) {
+    if (_activePointer != null) return;
+    _activePointer = event.pointer;
+    _updateDirection(event);
+  }
+
+  void _release(PointerEvent event) {
+    if (_activePointer != event.pointer) return;
+    _activePointer = null;
+    _direction = 0;
+    widget.input.setHorizontalDirection(0);
     if (mounted) setState(() {});
   }
 
   @override
+  void dispose() {
+    widget.input.setHorizontalDirection(0);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Listener(
-      onPointerDown: (_) => _setHeld(true),
-      onPointerUp: (_) => _setHeld(false),
-      onPointerCancel: (_) => _setHeld(false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 70),
-        width: widget.diameter,
-        height: widget.diameter,
-        decoration: BoxDecoration(
-          color: _held ? Colors.white : Colors.white.withValues(alpha: 0.16),
-          border: Border.all(color: Colors.white, width: 2),
-          borderRadius: BorderRadius.circular(12),
+    return Semantics(
+      label: 'Move left or right',
+      child: Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerDown: _handleDown,
+        onPointerMove: _updateDirection,
+        onPointerUp: _release,
+        onPointerCancel: _release,
+        child: SizedBox(
+          width: _width,
+          height: widget.buttonSize,
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: _DirectionHalf(
+                  icon: Icons.arrow_left_rounded,
+                  pressed: _direction < 0,
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(18),
+                  ),
+                ),
+              ),
+              Container(
+                width: 2,
+                color: Colors.white.withValues(alpha: 0.45),
+              ),
+              Expanded(
+                child: _DirectionHalf(
+                  icon: Icons.arrow_right_rounded,
+                  pressed: _direction > 0,
+                  borderRadius: const BorderRadius.horizontal(
+                    right: Radius.circular(18),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-        child: Icon(
-          widget.icon,
-          size: widget.diameter * 0.62,
-          color: _held ? Colors.black : Colors.white,
+      ),
+    );
+  }
+}
+
+class _DirectionHalf extends StatelessWidget {
+  const _DirectionHalf({
+    required this.icon,
+    required this.pressed,
+    required this.borderRadius,
+  });
+
+  final IconData icon;
+  final bool pressed;
+  final BorderRadius borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 55),
+      decoration: BoxDecoration(
+        color: pressed ? Colors.white : Colors.black.withValues(alpha: 0.58),
+        border: Border.all(color: Colors.white, width: 2.5),
+        borderRadius: borderRadius,
+        boxShadow: const <BoxShadow>[
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Icon(
+        icon,
+        size: 54,
+        color: pressed ? Colors.black : Colors.white,
+      ),
+    );
+  }
+}
+
+class _JumpButton extends StatefulWidget {
+  const _JumpButton({
+    required this.onPressed,
+    required this.diameter,
+  });
+
+  final VoidCallback onPressed;
+  final double diameter;
+
+  @override
+  State<_JumpButton> createState() => _JumpButtonState();
+}
+
+class _JumpButtonState extends State<_JumpButton> {
+  final Set<int> _activePointers = <int>{};
+
+  bool get _pressed => _activePointers.isNotEmpty;
+
+  void _handleDown(PointerDownEvent event) {
+    final wasPressed = _pressed;
+    _activePointers.add(event.pointer);
+    if (!wasPressed) {
+      widget.onPressed();
+      HapticFeedback.lightImpact();
+    }
+    if (mounted) setState(() {});
+  }
+
+  void _release(PointerEvent event) {
+    if (!_activePointers.remove(event.pointer)) return;
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _activePointers.clear();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Jump',
+      child: Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerDown: _handleDown,
+        onPointerUp: _release,
+        onPointerCancel: _release,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 55),
+          width: widget.diameter,
+          height: widget.diameter,
+          decoration: BoxDecoration(
+            color: _pressed ? Colors.white : Colors.black.withValues(alpha: 0.58),
+            border: Border.all(color: Colors.white, width: 2.5),
+            shape: BoxShape.circle,
+            boxShadow: const <BoxShadow>[
+              BoxShadow(
+                color: Color(0x66000000),
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Icon(
+            Icons.keyboard_arrow_up_rounded,
+            size: widget.diameter * 0.62,
+            color: _pressed ? Colors.black : Colors.white,
+          ),
         ),
       ),
     );
