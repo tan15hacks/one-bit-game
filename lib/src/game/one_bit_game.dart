@@ -273,7 +273,7 @@ class OneBitGame extends FlameGame {
 
   final bool startPaused;
   final GameInput input = GameInput();
-  final ValueNotifier<bool> ready = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> gameReady = ValueNotifier<bool>(false);
   final ValueNotifier<int> collectedCoins = ValueNotifier<int>(0);
   final ValueNotifier<int> totalCoins = ValueNotifier<int>(0);
   final ValueNotifier<int> deaths = ValueNotifier<int>(0);
@@ -402,7 +402,7 @@ class OneBitGame extends FlameGame {
     _lastPlayerX = player.position.x;
 
     if (startPaused) pauseEngine();
-    ready.value = true;
+    gameReady.value = true;
   }
 
   @override
