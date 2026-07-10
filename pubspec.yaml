@@ -4,14 +4,15 @@ publish_to: "none"
 version: 0.1.0+1
 
 environment:
-  sdk: ">=3.11.0 <4.0.0"
-  flutter: ">=3.41.0"
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.38.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  flame: ^1.37.0
-  flame_tiled: ^3.1.1
+  # Pinned to the newest releases compatible with Dart 3.10 / Flutter 3.38.
+  flame: 1.35.1
+  flame_tiled: 3.0.11
 
 dev_dependencies:
   flutter_test:
