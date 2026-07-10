@@ -202,12 +202,12 @@ class PlayerComponent extends SpriteComponent {
 
 class CoinComponent extends SpriteComponent {
   CoinComponent({required Sprite sprite, required Vector2 spawn})
-      : _baseY = spawn.y,
+      : _baseY = spawn.y - 4,
         super(
           sprite: sprite,
-          position: spawn,
-          size: Vector2.all(16),
-          priority: 10,
+          position: Vector2(spawn.x - 4, spawn.y - 4),
+          size: Vector2.all(24),
+          priority: 12,
         );
 
   final double _baseY;
@@ -215,17 +215,29 @@ class CoinComponent extends SpriteComponent {
   bool collected = false;
 
   ui.Rect get hitbox => ui.Rect.fromLTWH(
-        position.x + 3,
-        position.y + 3,
-        10,
-        10,
+        position.x + 4,
+        position.y + 4,
+        16,
+        16,
       );
 
   @override
   void update(double dt) {
     super.update(dt);
     _elapsed += dt;
-    position.y = _baseY + math.sin(_elapsed * 4) * 1.5;
+    position.y = _baseY + math.sin(_elapsed * 4) * 2;
+  }
+
+  @override
+  void render(ui.Canvas canvas) {
+    final pulse = 1 + (math.sin(_elapsed * 5) * 0.12);
+    final center = ui.Offset(size.x / 2, size.y / 2);
+    final haloPaint = ui.Paint()
+      ..color = const ui.Color(0xCCFFFFFF)
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawCircle(center, 11 * pulse, haloPaint);
+    super.render(canvas);
   }
 
   void collect() {
@@ -244,16 +256,74 @@ class ExitDoorComponent extends SpriteComponent {
   }) : super(
           sprite: closedSprite,
           position: position,
-          size: Vector2.all(16),
-          priority: 10,
+          size: Vector2(32, 48),
+          priority: 12,
         );
 
   final Sprite closedSprite;
   final Sprite openSprite;
   final ui.Rect triggerRect;
   bool _open = false;
+  double _elapsed = 0;
 
   bool get isOpen => _open;
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    _elapsed += dt;
+  }
+
+  @override
+  void render(ui.Canvas canvas) {
+    super.render(canvas);
+
+    final borderPaint = ui.Paint()
+      ..color = const ui.Color(0xFFFFFFFF)
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawRect(
+      ui.Rect.fromLTWH(1, 1, size.x - 2, size.y - 2),
+      borderPaint,
+    );
+
+    if (_open) {
+      final pulse = 0.55 + ((math.sin(_elapsed * 6) + 1) * 0.20);
+      final glowPaint = ui.Paint()
+        ..color = ui.Color.fromARGB((255 * pulse).round(), 255, 255, 255)
+        ..style = ui.PaintingStyle.stroke
+        ..strokeWidth = 1.5;
+      canvas.drawCircle(
+        ui.Offset(size.x / 2, size.y / 2),
+        9 + (math.sin(_elapsed * 5) * 2),
+        glowPaint,
+      );
+    } else {
+      final lockPaint = ui.Paint()
+        ..color = const ui.Color(0xFFFFFFFF)
+        ..style = ui.PaintingStyle.stroke
+        ..strokeWidth = 2;
+      canvas.drawRect(
+        ui.Rect.fromCenter(
+          center: ui.Offset(size.x / 2, size.y / 2 + 4),
+          width: 10,
+          height: 9,
+        ),
+        lockPaint,
+      );
+      canvas.drawArc(
+        ui.Rect.fromCenter(
+          center: ui.Offset(size.x / 2, size.y / 2),
+          width: 8,
+          height: 10,
+        ),
+        math.pi,
+        math.pi,
+        false,
+        lockPaint,
+      );
+    }
+  }
 
   set isOpen(bool value) {
     if (_open == value) return;
@@ -366,9 +436,9 @@ class OneBitGame extends FlameGame {
         ),
       ),
     );
-    final coinSprite = await Sprite.load('tiles/tile_0001.png');
-    final closedDoor = await Sprite.load('tiles/tile_0058.png');
-    final openDoor = await Sprite.load('tiles/tile_0056.png');
+    final coinSprite = await Sprite.load('tiles/tile_0021.png');
+    final closedDoor = await Sprite.load('tiles/tile_0056.png');
+    final openDoor = await Sprite.load('tiles/tile_0058.png');
 
     for (final coinSpawn in coins) {
       final coin = CoinComponent(sprite: coinSprite, spawn: coinSpawn);
@@ -380,7 +450,7 @@ class OneBitGame extends FlameGame {
     exitDoor = ExitDoorComponent(
       closedSprite: closedDoor,
       openSprite: openDoor,
-      position: Vector2(exitRect.left, exitRect.bottom - 16),
+      position: Vector2(exitRect.left - 8, exitRect.top),
       triggerRect: exitRect,
     );
     world.add(exitDoor);
